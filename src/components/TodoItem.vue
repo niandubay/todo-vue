@@ -21,7 +21,10 @@
         v-focus
       />
     </div>
-    <div class="remove-item" @click="removeTodo(index)">&times;</div>
+    <div>
+      <button @click="pluralize">Plural</button>
+      <span class="remove-item" @click="removeTodo(index)">&times;</span>
+    </div>
   </div>
 </template>
 
@@ -58,6 +61,12 @@ export default {
       before: ""
     };
   },
+  created() {
+    eventBus.$on("pluralize", this.handlePluralize);
+  },
+  beforeDestroy() {
+    eventBus.$off("pluralize", this.handlePluralize);
+  },
   watch: {
     checkAll() {
       this.completed = this.checkAll ? true : this.todo.completed;
@@ -65,7 +74,7 @@ export default {
   },
   methods: {
     removeTodo(index) {
-      this.$emit("removedTodo", index);
+      eventBus.$emit("removedTodo", index);
     },
     editTodo() {
       this.beforeEditCache = this.title;
@@ -76,7 +85,7 @@ export default {
         this.title = this.beforeEditCache;
       }
       this.editing = false;
-      this.$emit("finishedEdit", {
+      eventBus.$emit("finishedEdit", {
         index: this.index,
         todo: {
           id: this.id,
@@ -89,6 +98,21 @@ export default {
     cancelEdit() {
       this.title = this.beforeEditCache;
       this.editing = false;
+    },
+    pluralize() {
+      eventBus.$emit("pluralize");
+      eventBus.$emit("finishedEdit", {
+        index: this.index,
+        todo: {
+          id: this.id,
+          title: this.title,
+          completed: this.completed,
+          editing: this.editing
+        }
+      });
+    },
+    handlePluralize() {
+      this.title =  this.title + 's';
     }
   }
 };
